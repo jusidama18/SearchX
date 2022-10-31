@@ -10,7 +10,7 @@ from telegram.ext import CommandHandler
 
 from bot import (
     LOGGER,
-    dispatcher,
+    app,
     DOWNLOAD_DIR,
     Interval,
     INDEX_URL,
@@ -18,12 +18,11 @@ from bot import (
     download_dict_lock,
     status_reply_dict_lock,
 )
-from bot.helper.download_utils.ddl_generator import appdrive, gdtot
+from bot.helper.download_utils.ddl_generator import gdtot
 from bot.helper.download_utils.gd_downloader import add_gd_download
 from bot.helper.drive_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.ext_utils.bot_utils import (
     is_gdrive_link,
-    is_appdrive_link,
     is_gdtot_link,
 )
 from bot.helper.ext_utils.exceptions import ArchiveExceptionHandler, DDLExceptionHandler
@@ -226,9 +225,7 @@ def _archive(bot, message, is_compress=False, is_extract=False):
     mesg = message.text.split("\n")
     message_args = mesg[0].split(maxsplit=1)
     name_arg = mesg[0].split("|", maxsplit=1)
-    is_appdrive = False
     is_gdtot = False
-    appdict = ""
     if len(message_args) > 1:
         link = message_args[1].strip()
         if link.startswith("pswd:"):
@@ -248,17 +245,13 @@ def _archive(bot, message, is_compress=False, is_extract=False):
     reply_to = message.reply_to_message
     if reply_to is not None:
         link = reply_to.text.split(maxsplit=1)[0].strip()
-    is_appdrive = is_appdrive_link(link)
+
     is_gdtot = is_gdtot_link(link)
-    if any([is_appdrive, is_gdtot]):
+    if is_gdtot:
         msg = sendMessage(f"<b>Processing:</b> <code>{link}</code>", bot, message)
         LOGGER.info(f"Processing: {link}")
         try:
-            if is_appdrive:
-                appdict = appdrive(link)
-                link = appdict.get("gdrive_link")
-            if is_gdtot:
-                link = gdtot(link)
+            link = gdtot(link)
             deleteMessage(bot, msg)
         except DDLExceptionHandler as err:
             deleteMessage(bot, msg)
@@ -273,15 +266,13 @@ def _archive(bot, message, is_compress=False, is_extract=False):
                 f"{DOWNLOAD_DIR}{listener.uid}",
                 listener,
                 name,
-                is_appdrive,
-                appdict,
                 is_gdtot,
             ),
         ).start()
     else:
         help_msg = (
             "<b><u>Instructions</u></b>\nSend a link along with command"
-            + "\n\n<b><u>Supported Sites</u></b>\n• Google Drive\n• AppDrive\n• GDToT"
+            + "\n\n<b><u>Supported Sites</u></b>\n• Google Drive\n• GDToT"
             + '\n\n<b><u>Set Custom Name</u></b>\nAdd "<code>|customname</code>" after the link'
             + '\n\n<b><u>Set Password</u></b>\nAdd "<code>pswd: xxx</code>" after the link'
         )
@@ -300,13 +291,11 @@ compress_handler = CommandHandler(
     BotCommands.CompressCommand,
     compress_data,
     filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
-    run_async=True,
 )
 extract_handler = CommandHandler(
     BotCommands.ExtractCommand,
     extract_data,
     filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
-    run_async=True,
 )
-dispatcher.add_handler(compress_handler)
-dispatcher.add_handler(extract_handler)
+app.add_handler(compress_handler)
+app.add_handler(extract_handler)

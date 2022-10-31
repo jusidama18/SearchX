@@ -6,14 +6,32 @@ from psutil import cpu_percent, cpu_count, disk_usage, virtual_memory, net_io_co
 from sys import executable
 from telegram.ext import CommandHandler
 
-from bot import bot, LOGGER, botStartTime, TELEGRAPH, Interval, dispatcher, updater
-from bot.modules import archive, auth, cancel, clone, count, delete, eval, list, permission, shell, status
+from bot import LOGGER, botStartTime, TELEGRAPH, Interval, app
+from bot.modules import (
+    archive,
+    auth,
+    cancel,
+    clone,
+    count,
+    delete,
+    eval,
+    list,
+    permission,
+    shell,
+    status,
+)
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from bot.helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_builder import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, sendLogFile
+from bot.helper.telegram_helper.message_utils import (
+    sendMessage,
+    sendMarkup,
+    editMessage,
+    sendLogFile,
+)
+
 
 def start(update, context):
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
@@ -24,30 +42,38 @@ def start(update, context):
     else:
         sendMessage("<b>Access denied</b>", context.bot, update.message)
 
+
 def ping(update, context):
     start_time = int(round(time.time() * 1000))
     reply = sendMessage("<b>Pong!</b>", context.bot, update.message)
     end_time = int(round(time.time() * 1000))
-    editMessage(f'<code>{end_time - start_time}ms</code>', reply)
+    editMessage(f"<code>{end_time - start_time}ms</code>", reply)
+
 
 def stats(update, context):
-    total, used, free, disk = disk_usage('/')
-    stats = '⚙️ <u><b>SYSTEM STATISTICS</b></u>' \
-            f'\n\n<b>Total Disk Space:</b> {get_readable_file_size(total)}' \
-            f'\n<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}' \
-            f'\n\n<b>Upload:</b> {get_readable_file_size(net_io_counters().bytes_sent)}' \
-            f'\n<b>Download:</b> {get_readable_file_size(net_io_counters().bytes_recv)}' \
-            f'\n\n<b>Physical Cores:</b> {cpu_count(logical=False)}' \
-            f'\n<b>Logical Cores:</b> {cpu_count(logical=True)}' \
-            f'\n\n<b>CPU:</b> {cpu_percent(interval=0.5)}% | <b>RAM:</b> {virtual_memory().percent}%' \
-            f'\n<b>DISK:</b> {disk}% | <b>Uptime:</b> {get_readable_time(time.time() - botStartTime)}'
+    total, used, free, disk = disk_usage("/")
+    stats = (
+        "⚙️ <u><b>SYSTEM STATISTICS</b></u>"
+        f"\n\n<b>Total Disk Space:</b> {get_readable_file_size(total)}"
+        f"\n<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}"
+        f"\n\n<b>Upload:</b> {get_readable_file_size(net_io_counters().bytes_sent)}"
+        f"\n<b>Download:</b> {get_readable_file_size(net_io_counters().bytes_recv)}"
+        f"\n\n<b>Physical Cores:</b> {cpu_count(logical=False)}"
+        f"\n<b>Logical Cores:</b> {cpu_count(logical=True)}"
+        f"\n\n<b>CPU:</b> {cpu_percent(interval=0.5)}% | <b>RAM:</b> {virtual_memory().percent}%"
+        f"\n<b>DISK:</b> {disk}% | <b>Uptime:</b> {get_readable_time(time.time() - botStartTime)}"
+    )
     sendMessage(stats, context.bot, update.message)
+
 
 def log(update, context):
     sendLogFile(context.bot, update.message)
 
+
 def restart(update, context):
-    restart_message = sendMessage("<b>Restart in progress...</b>", context.bot, update.message)
+    restart_message = sendMessage(
+        "<b>Restart in progress...</b>", context.bot, update.message
+    )
     if Interval:
         Interval[0].cancel()
         Interval.clear()
@@ -57,24 +83,25 @@ def restart(update, context):
         f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
     os.execl(executable, executable, "-m", "bot")
 
-help_string = '''
+
+help_string = """
 Bot
 
 Choose a help category:
-'''
+"""
 
-help_string_user = f'''
+help_string_user = f"""
 <b><u>User Commands</u></b>
 <br><br>
 • <b>/{BotCommands.StartCommand}</b>: Start the bot
 <br><br>
 • <b>/{BotCommands.ListCommand}</b> &lt;query&gt;: Search data in Google Drive
 <br><br>
-• <b>/{BotCommands.CloneCommand}</b> &lt;url&gt; &lt;dest_id&gt;: Clone data from Google Drive, AppDrive and GDToT (Destination ID optional)
+• <b>/{BotCommands.CloneCommand}</b> &lt;url&gt; &lt;dest_id&gt;: Clone data from Google Drive and GDToT (Destination ID optional)
 <br><br>
-• <b>/{BotCommands.CompressCommand}</b> &lt;url&gt;: Compress data from Google Drive, AppDrive and GDToT
+• <b>/{BotCommands.CompressCommand}</b> &lt;url&gt;: Compress data from Google Drive and GDToT
 <br><br>
-• <b>/{BotCommands.ExtractCommand}</b> &lt;url&gt;: Extract data from Google Drive, AppDrive and GDToT
+• <b>/{BotCommands.ExtractCommand}</b> &lt;url&gt;: Extract data from Google Drive and GDToT
 <br><br>
 • <b>/{BotCommands.CountCommand}</b> &lt;drive_url&gt;: Count data from Google Drive
 <br><br>
@@ -87,14 +114,13 @@ help_string_user = f'''
 • <b>/{BotCommands.StatsCommand}</b>: Get the system statistics
 <br><br>
 • <b>/{BotCommands.HelpCommand}</b>: Get help about the bot
-'''
+"""
 
 help_user = TELEGRAPH[0].create_page(
-    title='Help User Bot',
-    author_name='Bot',
-    html_content=help_string_user)['path']
+    title="Help User Bot", author_name="Bot", html_content=help_string_user
+)["path"]
 
-help_string_admin = f'''
+help_string_admin = f"""
 <b><u>Admin Commands</u></b>
 <br><br>
 • <b>/{BotCommands.PermissionCommand}</b> &lt;drive_url&gt; &lt;email&gt;: Set data permission in Google Drive (Email optional)
@@ -118,12 +144,12 @@ help_string_admin = f'''
 • <b>/{BotCommands.LogCommand}</b>: Get the log file
 <br><br>
 • <b>/{BotCommands.RestartCommand}</b>: Restart the bot
-'''
+"""
 
 help_admin = TELEGRAPH[0].create_page(
-    title='Help Admin Bot',
-    author_name='Levi',
-    html_content=help_string_admin)['path']
+    title="Help Admin Bot", author_name="Levi", html_content=help_string_admin
+)["path"]
+
 
 def bot_help(update, context):
     button = ButtonMaker()
@@ -131,33 +157,53 @@ def bot_help(update, context):
     button.build_button("Admin", f"https://graph.org/{help_admin}")
     sendMarkup(help_string, context.bot, update.message, button.build_menu(2))
 
+
 def main():
     start_cleanup()
     if os.path.isfile(".restartmsg"):
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
-        bot.editMessageText("<b>Restarted successfully</b>", chat_id, msg_id, parse_mode='HTML')
+        try:
+            app.bot.editMessageText(
+                "<b>Restarted successfully</b>", chat_id, msg_id, parse_mode="HTML"
+            )
+        except:
+            pass
         os.remove(".restartmsg")
 
-    start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
-    ping_handler = CommandHandler(BotCommands.PingCommand, ping,
-                                  filters=CustomFilters.authorized_user | CustomFilters.authorized_chat, run_async=True)
-    stats_handler = CommandHandler(BotCommands.StatsCommand, stats,
-                                   filters=CustomFilters.authorized_user | CustomFilters.authorized_chat, run_async=True)
-    log_handler = CommandHandler(BotCommands.LogCommand, log,
-                                 filters=CustomFilters.owner_filter, run_async=True)
-    restart_handler = CommandHandler(BotCommands.RestartCommand, restart,
-                                     filters=CustomFilters.owner_filter, run_async=True)
-    help_handler = CommandHandler(BotCommands.HelpCommand, bot_help,
-                                  filters=CustomFilters.authorized_user | CustomFilters.authorized_chat, run_async=True)
-    dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(ping_handler)
-    dispatcher.add_handler(stats_handler)
-    dispatcher.add_handler(log_handler)
-    dispatcher.add_handler(restart_handler)
-    dispatcher.add_handler(help_handler)
-    updater.start_polling()
+    start_handler = CommandHandler(BotCommands.StartCommand, start)
+    ping_handler = CommandHandler(
+        BotCommands.PingCommand,
+        ping,
+        filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
+    )
+    stats_handler = CommandHandler(
+        BotCommands.StatsCommand,
+        stats,
+        filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
+    )
+    log_handler = CommandHandler(
+        BotCommands.LogCommand, log, filters=CustomFilters.owner_filter
+    )
+    restart_handler = CommandHandler(
+        BotCommands.RestartCommand,
+        restart,
+        filters=CustomFilters.owner_filter,
+    )
+    help_handler = CommandHandler(
+        BotCommands.HelpCommand,
+        bot_help,
+        filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
+    )
+    app.add_handler(start_handler)
+    app.add_handler(ping_handler)
+    app.add_handler(stats_handler)
+    app.add_handler(log_handler)
+    app.add_handler(restart_handler)
+    app.add_handler(help_handler)
+    app.start_polling()
     LOGGER.info("Bot started")
     signal.signal(signal.SIGINT, exit_clean_up)
+
 
 main()

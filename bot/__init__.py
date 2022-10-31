@@ -47,6 +47,7 @@ DRIVE_NAMES = []
 DRIVE_IDS = []
 INDEX_URLS = []
 TELEGRAPH = []
+BOOKMARKS = {}
 
 download_dict_lock = Lock()
 status_reply_dict_lock = Lock()
@@ -90,9 +91,11 @@ IS_TEAM_DRIVE = IS_TEAM_DRIVE.lower() == 'true'
 USE_SERVICE_ACCOUNTS = os.environ.get('USE_SERVICE_ACCOUNTS', '')
 USE_SERVICE_ACCOUNTS = USE_SERVICE_ACCOUNTS.lower() == 'true'
 
-DOWNLOAD_DIR = os.environ.get('DOWNLOAD_DIR', '/usr/src/app/downloads/')
-if not DOWNLOAD_DIR.endswith('/'):
-    DOWNLOAD_DIR = DOWNLOAD_DIR + '/'
+DOWNLOAD_DIR = os.environ.get('DOWNLOAD_DIR', '')
+if len(DOWNLOAD_DIR) == 0:
+    DOWNLOAD_DIR = '/usr/src/app/downloads/'
+elif not DOWNLOAD_DIR.endswith('/'):
+    DOWNLOAD_DIR = f'{DOWNLOAD_DIR}/'
 
 STATUS_UPDATE_INTERVAL = os.environ.get('STATUS_UPDATE_INTERVAL', '')
 STATUS_UPDATE_INTERVAL = 10 if len(STATUS_UPDATE_INTERVAL) == 0 else int(STATUS_UPDATE_INTERVAL)
@@ -129,7 +132,7 @@ if len(ACCOUNTS_ZIP_URL) != 0:
         if res.status_code == 200:
             with open('accounts.zip', 'wb+') as f:
                 f.write(res.content)
-            subprocess.run(["unzip", "-q", "-o", "accounts.zip"])
+            subprocess.run(["unzip", "-q", "-o", "accounts.zip", "-x", "accounts/emails.txt"])
             subprocess.run(["chmod", "-R", "777", "accounts"])
             os.remove("accounts.zip")
         else:
@@ -148,12 +151,6 @@ if len(DRIVE_LIST_URL) != 0:
             LOGGER.error(f"Failed to load the drive_list file [{res.status_code}]")
     except Exception as err:
         LOGGER.error(f"DRIVE_LIST_URL: {err}")
-
-APPDRIVE_EMAIL = os.environ.get('APPDRIVE_EMAIL', '')
-APPDRIVE_PASS = os.environ.get('APPDRIVE_PASS', '')
-if len(APPDRIVE_EMAIL) == 0 or len(APPDRIVE_PASS) == 0:
-    APPDRIVE_EMAIL = None
-    APPDRIVE_PASS = None
 
 GDTOT_CRYPT = os.environ.get('GDTOT_CRYPT', '')
 if len(GDTOT_CRYPT) == 0:
@@ -183,11 +180,10 @@ def create_account(sname):
         time.sleep(e.retry_after)
         create_account(sname)
 
-for i in range(TELEGRAPH_ACCS):
+for _ in range(TELEGRAPH_ACCS):
     sname = ''.join(random.SystemRandom().choices(string.ascii_letters, k=8))
     create_account(sname)
 LOGGER.info(f"Generated {TELEGRAPH_ACCS} telegraph tokens")
 
-updater = tg.Updater(token=BOT_TOKEN, use_context=True)
-bot = updater.bot
-dispatcher = updater.dispatcher
+app = tg.Application.builder().token(BOT_TOKEN).build()
+bot = app.bot

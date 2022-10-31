@@ -1,10 +1,11 @@
 from telegram.ext import CommandHandler
 
-from bot import dispatcher, OWNER_ID, download_dict, download_dict_lock
+from bot import app, OWNER_ID, download_dict, download_dict_lock
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage
 from bot.helper.ext_utils.bot_utils import getDownloadByGid
+
 
 def cancelNode(update, context):
     user_id = update.message.from_user.id
@@ -12,7 +13,9 @@ def cancelNode(update, context):
         gid = context.args[0]
         dl = getDownloadByGid(gid)
         if not dl:
-            sendMessage(f"<b>GID:</b> <code>{gid}</code> not found", context.bot, update.message)
+            sendMessage(
+                f"<b>GID:</b> <code>{gid}</code> not found", context.bot, update.message
+            )
             return
     elif update.message.reply_to_message:
         task_message = update.message.reply_to_message
@@ -32,6 +35,10 @@ def cancelNode(update, context):
         return
     dl.download().cancel_task()
 
-cancel_handler = CommandHandler(BotCommands.CancelCommand, cancelNode,
-                                filters=CustomFilters.authorized_user | CustomFilters.authorized_chat, run_async=True)
-dispatcher.add_handler(cancel_handler)
+
+cancel_handler = CommandHandler(
+    BotCommands.CancelCommand,
+    cancelNode,
+    filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
+)
+app.add_handler(cancel_handler)
