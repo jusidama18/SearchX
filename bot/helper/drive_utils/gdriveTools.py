@@ -725,9 +725,8 @@ class GoogleDriveHelper:
         try:
             self.telegraph_path.append(
                 acc.create_page(
-                    title="SearchX",
-                    author_name="Levi",
-                    author_url="https://t.me/l3v11",
+                    title="Response Bot",
+                    author_name="Bot",
                     html_content=content)['path'])
         except RetryAfterError as err:
             LOGGER.info(f"Cooldown: {err.retry_after} seconds")
@@ -738,9 +737,8 @@ class GoogleDriveHelper:
         try:
             acc.edit_page(
                 path=path,
-                title="SearchX",
+                title="Response Bot",
                 author_name="Levi",
-                author_url="https://t.me/l3v11",
                 html_content=content)
         except RetryAfterError as err:
             LOGGER.info(f"Cooldown: {err.retry_after} seconds")
@@ -751,9 +749,8 @@ class GoogleDriveHelper:
         if exception is not None:
             exception = str(exception).replace('>', '').replace('<', '')
             LOGGER.error(exception)
-        else: 
-            if response['files']:
-                self.response[request_id] = response
+        elif response['files']:
+            self.response[request_id] = response
 
     def __drive_query(self, drive_ids, search_type, file_name):
         batch = self.__service.new_batch_http_request(self.__receive_callback)

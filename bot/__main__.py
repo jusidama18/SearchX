@@ -58,7 +58,7 @@ def restart(update, context):
     os.execl(executable, executable, "-m", "bot")
 
 help_string = '''
-<b><a href='https://github.com/l3v11/SearchX'>SearchX</a></b> - The Ultimate Telegram Bot for Google Drive
+Bot
 
 Choose a help category:
 '''
@@ -90,9 +90,8 @@ help_string_user = f'''
 '''
 
 help_user = TELEGRAPH[0].create_page(
-    title='SearchX Help',
-    author_name='Levi',
-    author_url='https://t.me/l3v11',
+    title='Help User Bot',
+    author_name='Bot',
     html_content=help_string_user)['path']
 
 help_string_admin = f'''
@@ -122,9 +121,8 @@ help_string_admin = f'''
 '''
 
 help_admin = TELEGRAPH[0].create_page(
-    title='SearchX Help',
+    title='Help Admin Bot',
     author_name='Levi',
-    author_url='https://t.me/l3v11',
     html_content=help_string_admin)['path']
 
 def bot_help(update, context):

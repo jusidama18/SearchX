@@ -28,7 +28,7 @@ class DownloadStatus:
     def progress_raw(self):
         try:
             return self.__obj.processed_bytes / self.__size * 100
-        except:
+        except ZeroDivisionError:
             return 0
 
     def progress(self):
@@ -47,7 +47,7 @@ class DownloadStatus:
         try:
             seconds = (self.__size - self.__obj.processed_bytes) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except:
+        except ZeroDivisionError:
             return '-'
 
     def download(self):

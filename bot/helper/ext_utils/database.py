@@ -15,7 +15,7 @@ class DatabaseHelper:
     def __connect(self):
         try:
             self.__client = MongoClient(DATABASE_URL)
-            self.__db = self.__client['SearchX']
+            self.__db = self.__client['Bot']
             self.__collection = self.__db['users']
         except PyMongoError as err:
             LOGGER.error(err)
@@ -25,15 +25,19 @@ class DatabaseHelper:
         if self.__err:
             return
         self.__collection.insert_one({"user_id": user_id})
-        return 'Authorization granted'
-        self.__client.close()
+        try:
+            return 'Authorization granted'
+        finally:
+            self.__client.close()
 
     def unauth_user(self, user_id: int):
         if self.__err:
             return
         self.__collection.delete_many({"user_id": user_id})
-        return 'Authorization revoked'
-        self.__client.close()
+        try:
+            return 'Authorization revoked'
+        finally:
+            self.__client.close()
 
     def load_users(self):
         if self.__err:

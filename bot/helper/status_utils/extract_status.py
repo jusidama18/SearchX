@@ -20,7 +20,7 @@ class ExtractStatus:
     def progress_raw(self):
         try:
             return self.processed_bytes() / self.__size * 100
-        except:
+        except ZeroDivisionError:
             return 0
 
     def progress(self):
@@ -45,7 +45,7 @@ class ExtractStatus:
         try:
             seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except:
+        except ZeroDivisionError:
             return '-'
 
     def status(self):

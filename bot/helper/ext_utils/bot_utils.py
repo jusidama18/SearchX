@@ -6,7 +6,7 @@ from html import escape
 from psutil import virtual_memory, cpu_percent, disk_usage
 
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot import botStartTime, DOWNLOAD_DIR, download_dict, download_dict_lock
+from bot import botStartTime, download_dict, download_dict_lock
 
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
@@ -51,8 +51,7 @@ def get_progress_bar_string(status):
     cFull = p // 8
     p_str = '⬤' * cFull
     p_str += '○' * (12 - cFull)
-    p_str = f"「{p_str}」"
-    return p_str
+    return f"「{p_str}」"
 
 def get_readable_message():
     with download_dict_lock:
