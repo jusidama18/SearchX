@@ -3,7 +3,7 @@ import string
 
 from telegram.ext import CommandHandler
 
-from bot import LOGGER, app, CLONE_LIMIT, download_dict, download_dict_lock, Interval
+from bot import LOGGER, BOOKMARKS, app, CLONE_LIMIT, download_dict, download_dict_lock, Interval
 from bot.helper.download_utils.ddl_generator import gdtot
 from bot.helper.drive_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.ext_utils.bot_utils import (
@@ -16,7 +16,6 @@ from bot.helper.ext_utils.exceptions import DDLExceptionHandler
 from bot.helper.status_utils.clone_status import CloneStatus
 from bot.helper.telegram_helper.message_utils import (
     sendMessage,
-    editMessage,
     deleteMessage,
     delete_all_messages,
     update_all_messages,
@@ -30,26 +29,32 @@ from bot.helper.telegram_helper.filters import CustomFilters
 def cloneNode(update, context):
     args = update.message.text.split()
     reply_to = update.message.reply_to_message
-    link = ""
-    dest_id = ""
+    link = ''
+    key = ''
+    dest_id = ''
     if len(args) > 1:
         link = args[1].strip()
         try:
-            dest_id = args[2].strip()
+            key = args[2].strip()
+            try:
+                dest_id = BOOKMARKS[key]
+            except KeyError:
+                return sendMessage("Invalid Drive Key", context.bot, update.message)
         except IndexError:
             pass
     if reply_to:
         link = reply_to.text.split(maxsplit=1)[0].strip()
         try:
-            dest_id = args[1].strip()
+            key = args[1].strip()
+            try:
+                dest_id = BOOKMARKS[key]
+            except KeyError:
+                return sendMessage("Invalid Drive Key", context.bot, update.message)
         except IndexError:
             pass
-
     is_gdtot = is_gdtot_link(link)
     if is_gdtot:
-        msg = sendMessage(
-            f"<b>Processing:</b> <code>{link}</code>", context.bot, update.message
-        )
+        msg = sendMessage(f"<b>Processing:</b> <code>{link}</code>", context.bot, update.message)
         LOGGER.info(f"Processing: {link}")
         try:
             link = gdtot(link)
@@ -112,14 +117,10 @@ def cloneNode(update, context):
             LOGGER.info(f"Deleting: {link}")
             gd.deleteFile(link)
     else:
-        help_msg = "<b><u>Instructions</u></b>\nSend a link along with command"
-        help_msg += "\n\n<b><u>Supported Sites</u></b>\n• Google Drive\n• GDToT"
+        help_msg = '<b><u>Instructions</u></b>\nSend a link along with command'
+        help_msg += '\n\n<b><u>Supported Sites</u></b>\n• Google Drive\n• GDToT'
         sendMessage(help_msg, context.bot, update.message)
 
-
-clone_handler = CommandHandler(
-    BotCommands.CloneCommand,
-    cloneNode,
-    filters=CustomFilters.authorized_user | CustomFilters.authorized_chat,
-)
+clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode,
+                               filters=CustomFilters.authorized_user | CustomFilters.authorized_chat)
 app.add_handler(clone_handler)

@@ -27,7 +27,6 @@ from bot.helper.telegram_helper.button_builder import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     sendMessage,
-    sendMarkup,
     editMessage,
     sendLogFile,
 )
@@ -97,7 +96,7 @@ help_string_user = f"""
 <br><br>
 • <b>/{BotCommands.ListCommand}</b> &lt;query&gt;: Search data in Google Drive
 <br><br>
-• <b>/{BotCommands.CloneCommand}</b> &lt;url&gt; &lt;dest_id&gt;: Clone data from Google Drive and GDToT (Destination ID optional)
+• <b>/{BotCommands.CloneCommand}</b> &lt;url&gt; &lt;drive_key&gt;: Clone data from Google Drive and GDToT (Drive Key optional)
 <br><br>
 • <b>/{BotCommands.CompressCommand}</b> &lt;url&gt;: Compress data from Google Drive and GDToT
 <br><br>
@@ -108,6 +107,8 @@ help_string_user = f"""
 • <b>/{BotCommands.CancelCommand}</b> &lt;gid&gt;: Cancel a task
 <br><br>
 • <b>/{BotCommands.StatusCommand}</b>: Get status of all tasks
+<br><br>
+• <b>/{BotCommands.BookmarksCommand}</b>: Get the list of bookmarked destination drives
 <br><br>
 • <b>/{BotCommands.PingCommand}</b>: Ping the bot
 <br><br>
@@ -126,6 +127,10 @@ help_string_admin = f"""
 • <b>/{BotCommands.PermissionCommand}</b> &lt;drive_url&gt; &lt;email&gt;: Set data permission in Google Drive (Email optional)
 <br><br>
 • <b>/{BotCommands.DeleteCommand}</b> &lt;drive_url&gt;: Delete data from Google Drive
+<br><br>
+• <b>/{BotCommands.AddBookmarkCommand}</b> &lt;drive_key&gt; &lt;drive_id&gt;: Add bookmark of a destination drive
+<br><br>
+• <b>/{BotCommands.RemBookmarkCommand}</b> &lt;drive_key&gt;: Remove bookmark of a destination drive
 <br><br>
 • <b>/{BotCommands.AuthorizeCommand}</b>: Grant authorization of an user
 <br><br>
@@ -155,7 +160,7 @@ def bot_help(update, context):
     button = ButtonMaker()
     button.build_button("User", f"https://graph.org/{help_user}")
     button.build_button("Admin", f"https://graph.org/{help_admin}")
-    sendMarkup(help_string, context.bot, update.message, button.build_menu(2))
+    sendMessage(help_string, context.bot, update.message, button.build_menu(2))
 
 
 def main():
@@ -164,9 +169,7 @@ def main():
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
         try:
-            app.bot.editMessageText(
-                "<b>Restarted successfully</b>", chat_id, msg_id, parse_mode="HTML"
-            )
+            bot.editMessageText("<b>Restarted successfully</b>", chat_id, msg_id)
         except:
             pass
         os.remove(".restartmsg")

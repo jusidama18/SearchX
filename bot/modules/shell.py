@@ -31,9 +31,8 @@ def shell(update, context):
             context.bot.send_document(
                 document=doc,
                 filename=doc.name,
-                reply_to_message_id=message.message_id,
                 chat_id=message.chat_id,
-            )
+                reply_to_message_id=message.message_id)
     elif len(reply) != 0:
         message.reply_text(reply, parse_mode="HTML")
     else:

@@ -17,7 +17,7 @@ def list_drive(update, context):
         query = reply_to.text.strip()
     if query != "":
         reply = sendMessage(
-            f"<b>Search in progress...</b>", context.bot, update.message
+            "<b>Search in progress...</b>", context.bot, update.message
         )
         LOGGER.info(f"Finding: {query}")
         gd = GoogleDriveHelper()
@@ -28,8 +28,10 @@ def list_drive(update, context):
             LOGGER.error(err)
         editMessage(msg, reply, button)
     else:
-        help_msg = "<b><u>Instructions</u></b>\nSend a Query along with command"
-        help_msg += '\n\n<b><u>Get Folder Results</u></b>\nAdd "<code>-d</code>" before the Query'
+        help_msg = (
+            "<b><u>Instructions</u></b>\nSend a Query along with command"
+            + '\n\n<b><u>Get Folder Results</u></b>\nAdd "<code>-d</code>" before the Query'
+        )
         help_msg += (
             '\n\n<b><u>Get File Results</u></b>\nAdd "<code>-f</code>" before the Query'
         )
